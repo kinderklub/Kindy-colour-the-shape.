@@ -1,0 +1,2360 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Warnakan Bentuk — Colour the Shape</title>
+  <!-- Fon Google: Quicksand sahaja (Font Lock) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Gaya Global & Kunci Fon Quicksand */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Quicksand', sans-serif !important;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --primary: #FF5A79;
+      --primary-dark: #E03E60;
+      --secondary: #4CC9F0;
+      --accent-yellow: #FFD166;
+      --accent-green: #06D6A0;
+      --accent-purple: #9D4EDD;
+      --bg-gradient: linear-gradient(180deg, #E0F7FA 0%, #FFF3E0 50%, #FCE4EC 100%);
+      --text-dark: #2B2D42;
+      --text-light: #FFFFFF;
+      --panel-bg: #FFFFFF;
+      --panel-shadow: 0 12px 32px rgba(43, 45, 66, 0.12);
+      --border-radius-lg: 28px;
+      --border-radius-md: 20px;
+      --border-radius-sm: 14px;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-dark);
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    /* Lapisan Latar Belakang Beranimasi (Vektor Chibi) */
+    .bg-scene {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .cloud {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.75);
+      border-radius: 50px;
+      animation: floatCloud linear infinite;
+    }
+    .cloud::before, .cloud::after {
+      content: '';
+      position: absolute;
+      background: rgba(255, 255, 255, 0.75);
+      border-radius: 50%;
+    }
+    .cloud-1 {
+      width: 140px; height: 45px; top: 10%; left: -160px;
+      animation-duration: 38s;
+    }
+    .cloud-1::before { width: 55px; height: 55px; top: -25px; left: 20px; }
+    .cloud-1::after { width: 45px; height: 45px; top: -18px; left: 65px; }
+
+    .cloud-2 {
+      width: 180px; height: 55px; top: 26%; left: -200px;
+      animation-duration: 48s; animation-delay: 12s;
+    }
+    .cloud-2::before { width: 70px; height: 70px; top: -35px; left: 30px; }
+    .cloud-2::after { width: 55px; height: 55px; top: -22px; left: 90px; }
+
+    .bg-balloon {
+      position: absolute;
+      animation: floatBalloon ease-in-out infinite alternate;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .balloon-1 { top: 14%; right: 7%; animation-duration: 6s; }
+    .balloon-2 { top: 42%; left: 4%; animation-duration: 7.5s; animation-delay: 2s; }
+
+    .bg-decor {
+      position: absolute;
+      opacity: 0.85;
+      animation: gentleRotate 8s ease-in-out infinite alternate;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .decor-1 { top: 7%; left: 8%; }
+    .decor-2 { bottom: 10%; right: 6%; }
+    .decor-3 { bottom: 16%; left: 7%; }
+
+    @keyframes floatCloud {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(calc(100vw + 300px)); }
+    }
+    @keyframes floatBalloon {
+      0% { transform: translateY(0px) rotate(-3deg); }
+      100% { transform: translateY(-20px) rotate(4deg); }
+    }
+    @keyframes gentleRotate {
+      0% { transform: rotate(-10deg) scale(0.95); }
+      100% { transform: rotate(10deg) scale(1.05); }
+    }
+
+    /* Bekas Utama Aplikasi */
+    #app {
+      width: 100%;
+      max-width: 580px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 10;
+      padding: 12px 14px 16px 14px;
+    }
+
+    /* Bar Navigasi Atas */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      background: white;
+      border: 3px solid #F0F2F5;
+      color: var(--text-dark);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .btn-icon:active {
+      transform: scale(0.90);
+    }
+    .btn-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .lang-badge {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      background: #FFE3E9;
+      border: 2px solid #FFCCD5;
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(255, 90, 121, 0.15);
+      transition: transform 0.15s ease;
+    }
+    .lang-badge:active {
+      transform: scale(0.94);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Reka Letak Skrin */
+    .screen {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--panel-bg);
+      border-radius: var(--border-radius-lg);
+      padding: 22px 18px;
+      box-shadow: var(--panel-shadow);
+      border: 4px solid #FFF0F5;
+      text-align: center;
+      position: relative;
+    }
+
+    /* Maskot Chibi */
+    .chibi-mascot {
+      width: 86px;
+      height: 86px;
+      margin: 0 auto 8px auto;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.25s ease;
+    }
+    .chibi-mascot svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.12));
+    }
+    .mascot-bounce {
+      animation: mascotHop 2.4s infinite ease-in-out;
+    }
+    .mascot-jump {
+      animation: mascotJump 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .mascot-confused {
+      animation: mascotShake 0.5s ease-in-out;
+    }
+    .mascot-celebrate {
+      animation: mascotDance 0.8s infinite alternate ease-in-out;
+    }
+
+    @keyframes mascotHop {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-7px) rotate(2deg); }
+    }
+    @keyframes mascotJump {
+      0% { transform: scale(1); }
+      50% { transform: translateY(-16px) scale(1.15) rotate(-4deg); }
+      100% { transform: translateY(0) scale(1); }
+    }
+    @keyframes mascotShake {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      25% { transform: translateX(-8px) rotate(-6deg); }
+      75% { transform: translateX(8px) rotate(6deg); }
+    }
+    @keyframes mascotDance {
+      0% { transform: translateY(-8px) rotate(-8deg) scale(1.1); }
+      100% { transform: translateY(-2px) rotate(8deg) scale(1.1); }
+    }
+
+    /* Tipografi & Butang */
+    h1.title {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      text-shadow: 0 2px 0 rgba(255, 255, 255, 0.8);
+      margin-bottom: 4px;
+    }
+    h2.subtitle {
+      font-size: 15px;
+      font-weight: 700;
+      color: #6C757D;
+      margin-bottom: 16px;
+    }
+
+    .btn-main {
+      width: 100%;
+      padding: 14px 20px;
+      font-size: 18px;
+      font-weight: 800;
+      border-radius: var(--border-radius-md);
+      border: none;
+      background: linear-gradient(135deg, #FF5A79 0%, #FF2A55 100%);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(255, 42, 85, 0.35), 0 3px 0 #D61B43;
+      transition: all 0.15s ease-out;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-main:active {
+      transform: translateY(3px);
+      box-shadow: 0 3px 8px rgba(255, 42, 85, 0.35), 0 0 0 #D61B43;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 12px 18px;
+      font-size: 16px;
+      font-weight: 800;
+      border-radius: var(--border-radius-md);
+      border: 3px solid #E2E8F0;
+      background: white;
+      color: var(--text-dark);
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+    .btn-secondary:active {
+      transform: scale(0.97);
+      background: #F8FAFC;
+    }
+
+    /* Grid Pilihan Menu */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .menu-card {
+      background: white;
+      border: 3px solid #FFE0E9;
+      border-radius: var(--border-radius-md);
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(255, 90, 121, 0.1);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .menu-card:active {
+      transform: scale(0.95);
+      border-color: var(--primary);
+    }
+    .menu-card .menu-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+    .menu-card .menu-icon svg {
+      width: 44px;
+      height: 44px;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.08));
+      transition: transform 0.2s ease;
+    }
+    .menu-card:active .menu-icon svg {
+      transform: scale(1.15) rotate(4deg);
+    }
+    .menu-card .menu-text {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-dark);
+    }
+
+    /* Bar Status Permainan */
+    .game-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.95);
+      border: 3px solid #FFE4EC;
+      border-radius: var(--border-radius-md);
+      padding: 8px 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .stat-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-dark);
+    }
+    .stat-badge svg {
+      width: 24px;
+      height: 24px;
+    }
+    .stat-badge .stat-num {
+      color: var(--primary-dark);
+      font-size: 18px;
+    }
+
+    /* Panel Arahan */
+    .instruction-panel {
+      background: linear-gradient(135deg, #FFF9EB 0%, #FFF0F5 100%);
+      border: 3px dashed #FFCCD5;
+      border-radius: var(--border-radius-md);
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      position: relative;
+    }
+    .instruction-content {
+      text-align: left;
+      flex: 1;
+    }
+    .instruction-main {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      line-height: 1.25;
+    }
+    .instruction-sub {
+      font-size: 12px;
+      font-weight: 700;
+      color: #6C757D;
+      margin-top: 2px;
+    }
+    .target-shape-badge {
+      background: white;
+      border: 3px solid #FFD166;
+      border-radius: 16px;
+      padding: 6px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 64px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+    }
+    .target-shape-badge svg {
+      width: 28px;
+      height: 28px;
+    }
+    .target-shape-badge span {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-top: 2px;
+      text-transform: uppercase;
+    }
+
+    /* Kanvas Mewarna Utama */
+    .canvas-panel {
+      background: #FFFFFF;
+      border: 4px solid #FFE4EC;
+      border-radius: var(--border-radius-lg);
+      padding: 10px;
+      box-shadow: 0 10px 24px rgba(43, 45, 66, 0.08);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      min-height: 240px;
+      max-height: 310px;
+      overflow: hidden;
+    }
+    .canvas-svg-container {
+      width: 100%;
+      height: 100%;
+      max-height: 290px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .canvas-svg-container svg {
+      width: 100%;
+      height: 100%;
+      max-height: 280px;
+    }
+
+    /* Elemen Bentuk Interaktif */
+    .paintable-shape {
+      cursor: pointer;
+      stroke: #2B2D42;
+      stroke-width: 4px;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+      transition: fill 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.15s ease;
+      transform-origin: center;
+    }
+    .paintable-shape:active {
+      transform: scale(0.96);
+    }
+
+    /* Banner Maklum Balas */
+    .feedback-banner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.6);
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: var(--border-radius-md);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.2);
+      pointer-events: none;
+      opacity: 0;
+      z-index: 40;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .feedback-banner.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    .feedback-banner.correct {
+      border: 4px solid var(--accent-green);
+      color: #059669;
+    }
+    .feedback-banner.wrong {
+      border: 4px solid #FF8A1E;
+      color: #D97706;
+    }
+    .feedback-banner .fb-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .feedback-banner .fb-icon svg {
+      width: 36px;
+      height: 36px;
+    }
+    .feedback-banner .fb-text {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    /* Palet Warna */
+    .palette-container {
+      background: white;
+      border: 3px solid #F0F2F5;
+      border-radius: var(--border-radius-md);
+      padding: 8px 10px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .palette-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #6C757D;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 4px;
+    }
+    .palette-label .active-color-name {
+      color: var(--primary-dark);
+      font-weight: 800;
+    }
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+    }
+    .color-btn {
+      height: 42px;
+      border-radius: 12px;
+      border: 3px solid transparent;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2), 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .color-btn.active {
+      transform: scale(1.12);
+      border-color: #2B2D42;
+      box-shadow: 0 0 0 3px #FFD166, 0 6px 12px rgba(0,0,0,0.2);
+      z-index: 5;
+    }
+    .color-btn.active::after {
+      content: '✓';
+      color: white;
+      font-size: 16px;
+      font-weight: 900;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    }
+    .color-btn.white-color.active::after {
+      color: #2B2D42;
+      text-shadow: none;
+    }
+
+    /* Modal / Popups */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(43, 45, 66, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.active {
+      display: flex;
+    }
+    .modal-box {
+      background: white;
+      border-radius: var(--border-radius-lg);
+      width: 100%;
+      max-width: 480px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 22px 18px;
+      box-shadow: var(--panel-shadow);
+      border: 4px solid #FFE4EC;
+      text-align: center;
+      animation: modalPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes modalPop {
+      0% { transform: scale(0.85); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Grid Koleksi Gambar */
+    .collection-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+      max-height: 52vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .collection-item {
+      background: #F8FAFC;
+      border: 3px solid #E2E8F0;
+      border-radius: var(--border-radius-md);
+      padding: 8px 4px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .collection-item:active {
+      transform: scale(0.95);
+      border-color: var(--primary);
+    }
+    .collection-thumb {
+      width: 54px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .collection-thumb svg {
+      width: 100%;
+      height: 100%;
+    }
+    .collection-name {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-top: 4px;
+      text-align: center;
+      line-height: 1.1;
+    }
+
+    /* Kanvas Konfeti */
+    #confettiCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 200;
+    }
+
+    /* Partikel Kerlipan (Sparkle Chibi) */
+    .sparkle-pop {
+      position: absolute;
+      pointer-events: none;
+      animation: popSparkle 0.6s forwards ease-out;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    @keyframes popSparkle {
+      0% { transform: scale(0.2) translate(0, 0) rotate(0deg); opacity: 1; }
+      100% { transform: scale(1.3) translate(var(--tx), var(--ty)) rotate(45deg); opacity: 0; }
+    }
+
+    /* Footer Rasmi */
+    footer {
+      margin-top: auto;
+      padding-top: 16px;
+      padding-bottom: 6px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 800;
+      color: #718096;
+      letter-spacing: 0.3px;
+    }
+
+    /* Responsif */
+    @media (max-width: 360px) {
+      #app { padding: 8px; }
+      h1.title { font-size: 22px; }
+      .color-btn { height: 36px; }
+      .canvas-panel { min-height: 200px; max-height: 250px; }
+    }
+    @media (min-width: 500px) {
+      .canvas-panel { min-height: 280px; max-height: 330px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Lapisan Hiasan Latar Belakang Beranimasi (Comel Chibi Vector) -->
+  <div class="bg-scene">
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <!-- Belon Chibi Comel -->
+    <div class="bg-balloon balloon-1">
+      <svg viewBox="0 0 40 50" width="38" height="48" fill="none">
+        <ellipse cx="20" cy="20" rx="16" ry="19" fill="#FF5A79" stroke="#2B2D42" stroke-width="2.5"/>
+        <polygon points="20,38 16,42 24,42" fill="#FF5A79" stroke="#2B2D42" stroke-width="1.8"/>
+        <path d="M20 42 Q23 45 20 49" stroke="#2B2D42" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <circle cx="15" cy="18" r="1.8" fill="#2B2D42"/>
+        <circle cx="25" cy="18" r="1.8" fill="#2B2D42"/>
+        <circle cx="12" cy="21" r="1.5" fill="#FFCCD5"/>
+        <circle cx="28" cy="21" r="1.5" fill="#FFCCD5"/>
+        <path d="M17 22 Q20 24.5 23 22" stroke="#2B2D42" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+    <!-- Palet Warna Chibi Comel -->
+    <div class="bg-balloon balloon-2">
+      <svg viewBox="0 0 44 44" width="40" height="40" fill="none">
+        <path d="M22 4 C32 4 40 12 40 22 C40 30 34 36 26 36 C23 36 21 34 21 31 C21 28 23 26 21 24 C19 22 15 22 12 24 C7 28 4 25 4 19 C4 11 12 4 22 4 Z" fill="#FFEAA7" stroke="#2B2D42" stroke-width="2.5"/>
+        <circle cx="12" cy="12" r="3" fill="#FF5A79"/>
+        <circle cx="20" cy="9" r="3" fill="#4CC9F0"/>
+        <circle cx="28" cy="11" r="3" fill="#06D6A0"/>
+        <circle cx="34" cy="18" r="3" fill="#9D4EDD"/>
+        <circle cx="18" cy="21" r="1.5" fill="#2B2D42"/>
+        <circle cx="24" cy="21" r="1.5" fill="#2B2D42"/>
+        <path d="M19.5 24 Q21 25.5 22.5 24" stroke="#2B2D42" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+    <!-- Bintang Chibi Comel -->
+    <div class="bg-decor decor-1">
+      <svg viewBox="0 0 36 36" width="34" height="34" fill="none">
+        <polygon points="18,3 22,13 33,14 25,22 28,33 18,27 8,33 11,22 3,14 14,13" fill="#FFD166" stroke="#2B2D42" stroke-width="2.2" stroke-linejoin="round"/>
+        <circle cx="14" cy="17" r="1.5" fill="#2B2D42"/>
+        <circle cx="22" cy="17" r="1.5" fill="#2B2D42"/>
+        <circle cx="11" cy="19.5" r="1.5" fill="#FF9EAA"/>
+        <circle cx="25" cy="19.5" r="1.5" fill="#FF9EAA"/>
+        <path d="M16 20.5 Q18 22.5 20 20.5" stroke="#2B2D42" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+    <!-- Krayon Chibi Comel -->
+    <div class="bg-decor decor-2">
+      <svg viewBox="0 0 34 40" width="32" height="38" fill="none" transform="rotate(15)">
+        <polygon points="17,3 10,14 24,14" fill="#4CC9F0" stroke="#2B2D42" stroke-width="2"/>
+        <rect x="10" y="14" width="14" height="22" rx="2" fill="#70D6FF" stroke="#2B2D42" stroke-width="2"/>
+        <circle cx="14" cy="22" r="1.3" fill="#2B2D42"/>
+        <circle cx="20" cy="22" r="1.3" fill="#2B2D42"/>
+        <path d="M15.5 25 Q17 26.5 18.5 25" stroke="#2B2D42" stroke-width="1" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+    <!-- Bunga Chibi Comel -->
+    <div class="bg-decor decor-3">
+      <svg viewBox="0 0 36 36" width="32" height="32" fill="none">
+        <circle cx="18" cy="9" r="6" fill="#FFCCD5"/>
+        <circle cx="27" cy="18" r="6" fill="#FFCCD5"/>
+        <circle cx="18" cy="27" r="6" fill="#FFCCD5"/>
+        <circle cx="9" cy="18" r="6" fill="#FFCCD5"/>
+        <circle cx="18" cy="18" r="7" fill="#FFD166" stroke="#2B2D42" stroke-width="2"/>
+        <circle cx="15.5" cy="16.5" r="1.2" fill="#2B2D42"/>
+        <circle cx="20.5" cy="16.5" r="1.2" fill="#2B2D42"/>
+        <path d="M16.5 19 Q18 20.5 19.5 19" stroke="#2B2D42" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Kanvas Konfeti -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <div id="app">
+    <!-- Bar Tajuk / Navigasi -->
+    <header>
+      <div class="btn-icon" id="btnHeaderHome" style="visibility: hidden;" title="Menu Utama">
+        <!-- Ikon Chibi Rumah (Home) -->
+        <svg viewBox="0 0 28 28" width="24" height="24" fill="none">
+          <path d="M5 13 L14 5 L23 13 V23 C23 23.5 22.5 24 22 24 H16 V18 C16 17.5 15.5 17 15 17 H13 C12.5 17 12 17.5 12 18 V24 H6 C5.5 24 5 23.5 5 23 V13 Z" fill="#FFE3E9" stroke="#2B2D42" stroke-width="2.2" stroke-linejoin="round"/>
+          <circle cx="14" cy="11" r="2" fill="#FFD166"/>
+        </svg>
+      </div>
+      <div class="lang-badge" id="btnLangToggle">BM ⇄ EN</div>
+      <div class="nav-actions">
+        <div class="btn-icon" id="btnSoundToggle" title="Sound">
+          <!-- Diisi dengan Chibi Speaker SVG -->
+        </div>
+      </div>
+    </header>
+
+    <!-- SKRIN UTAMA: MENU UTAMA (Terus Masuk ke Sini) -->
+    <section class="screen active" id="screenHome">
+      <div class="card">
+        <div class="chibi-mascot mascot-bounce" id="mascotMenu"></div>
+
+        <h1 class="title" data-i18n="game_title">Warnakan Bentuk</h1>
+        <h2 class="subtitle" data-i18n="game_subtitle">Belajar & Kenali Bentuk Sambil Mewarna</h2>
+
+        <button class="btn-main" id="btnGoModeSelect">
+          <span data-i18n="btn_play">Mula Mewarna!</span>
+          <!-- Roket Chibi Comel -->
+          <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
+            <path d="M16 2 C11 8 9 17 9 24 H23 C23 17 21 8 16 2 Z" fill="#FFFFFF" stroke="#2B2D42" stroke-width="2"/>
+            <circle cx="16" cy="13" r="4.5" fill="#4CC9F0" stroke="#2B2D42" stroke-width="1.8"/>
+            <circle cx="14.5" cy="12.5" r="1" fill="#2B2D42"/>
+            <circle cx="17.5" cy="12.5" r="1" fill="#2B2D42"/>
+            <path d="M15 15 Q16 16 17 15" stroke="#2B2D42" stroke-width="1" stroke-linecap="round" fill="none"/>
+            <path d="M9 19 L4 24 H9" fill="#FFD166" stroke="#2B2D42" stroke-width="1.8"/>
+            <path d="M23 19 L28 24 H23" fill="#FFD166" stroke="#2B2D42" stroke-width="1.8"/>
+            <polygon points="12,24 16,30 20,24" fill="#FF8A1E"/>
+          </svg>
+        </button>
+
+        <div style="margin-top: 14px;">
+          <!-- Butang Koleksi Gambar dengan Ikon Chibi -->
+          <div class="menu-card" id="btnOpenCollection">
+            <div class="menu-icon">
+              <svg viewBox="0 0 40 40" fill="none">
+                <rect x="5" y="6" width="30" height="28" rx="6" fill="#FFFFFF" stroke="#2B2D42" stroke-width="2.5"/>
+                <rect x="9" y="10" width="22" height="20" rx="3" fill="#E0F7FA"/>
+                <circle cx="14" cy="15" r="3" fill="#FFD166"/>
+                <polygon points="9,29 17,21 24,27 31,20 31,30 9,30" fill="#A7F3D0"/>
+                <circle cx="18" cy="15" r="1.3" fill="#2B2D42"/>
+                <circle cx="23" cy="15" r="1.3" fill="#2B2D42"/>
+                <path d="M19.5 17 Q20.5 18.5 21.5 17" stroke="#2B2D42" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+              </svg>
+            </div>
+            <div class="menu-text" data-i18n="btn_collection">Koleksi Gambar</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SKRIN PILIHAN BILANGAN GAMBAR -->
+    <section class="screen" id="screenModeSelect">
+      <div class="card">
+        <h1 class="title" data-i18n="choose_mode_title">Pilih Bilangan Gambar</h1>
+        <h2 class="subtitle" data-i18n="choose_mode_sub">Berapa gambar adik mahu warnakan?</h2>
+
+        <div class="menu-grid" style="margin-top: 8px;">
+          <!-- 5 Gambar -->
+          <div class="menu-card" data-count="5">
+            <div class="menu-icon">
+              <svg viewBox="0 0 36 36" fill="none">
+                <polygon points="18,3 22,13 33,14 25,22 28,33 18,27 8,33 11,22 3,14 14,13" fill="#FFD166" stroke="#2B2D42" stroke-width="2.2" stroke-linejoin="round"/>
+                <circle cx="14" cy="17" r="1.5" fill="#2B2D42"/>
+                <circle cx="22" cy="17" r="1.5" fill="#2B2D42"/>
+                <path d="M16 20.5 Q18 22.5 20 20.5" stroke="#2B2D42" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+              </svg>
+            </div>
+            <div class="menu-text" data-i18n="opt_5_q">5 Gambar</div>
+          </div>
+
+          <!-- 10 Gambar -->
+          <div class="menu-card" data-count="10">
+            <div class="menu-icon">
+              <svg viewBox="0 0 36 36" fill="none">
+                <polygon points="18,2 21,10 29,11 23,17 25,25 18,21 11,25 13,17 7,11 15,10" fill="#4CC9F0" stroke="#2B2D42" stroke-width="2.2" stroke-linejoin="round"/>
+                <circle cx="15" cy="14" r="1.3" fill="#2B2D42"/>
+                <circle cx="21" cy="14" r="1.3" fill="#2B2D42"/>
+                <circle cx="12.5" cy="16" r="1.2" fill="#FF9EAA"/>
+                <circle cx="23.5" cy="16" r="1.2" fill="#FF9EAA"/>
+                <path d="M16.5 17 Q18 18.5 19.5 17" stroke="#2B2D42" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+              </svg>
+            </div>
+            <div class="menu-text" data-i18n="opt_10_q">10 Gambar</div>
+          </div>
+
+          <!-- 20 Gambar -->
+          <div class="menu-card" data-count="20">
+            <div class="menu-icon">
+              <svg viewBox="0 0 40 36" fill="none">
+                <path d="M7 27 L9 13 L16 20 L20 8 L24 20 L31 13 L33 27 Z" fill="#FFD166" stroke="#2B2D42" stroke-width="2.5" stroke-linejoin="round"/>
+                <circle cx="9" cy="11" r="2.5" fill="#FF5A79"/>
+                <circle cx="20" cy="7" r="2.8" fill="#4CC9F0"/>
+                <circle cx="31" cy="11" r="2.5" fill="#06D6A0"/>
+                <circle cx="16.5" cy="22" r="1.4" fill="#2B2D42"/>
+                <circle cx="23.5" cy="22" r="1.4" fill="#2B2D42"/>
+                <path d="M18.5 24.5 Q20 26 21.5 24.5" stroke="#2B2D42" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+              </svg>
+            </div>
+            <div class="menu-text" data-i18n="opt_20_q">20 Gambar</div>
+          </div>
+
+          <!-- Main Bebas -->
+          <div class="menu-card" data-count="free">
+            <div class="menu-icon">
+              <svg viewBox="0 0 44 36" fill="none">
+                <path d="M7 28 A 15 15 0 0 1 37 28" stroke="#FF5A79" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M11 28 A 11 11 0 0 1 33 28" stroke="#FFD166" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M15 28 A 7 7 0 0 1 29 28" stroke="#4CC9F0" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <ellipse cx="9" cy="27" rx="6.5" ry="5" fill="#FFFFFF" stroke="#2B2D42" stroke-width="1.8"/>
+                <ellipse cx="35" cy="27" rx="6.5" ry="5" fill="#FFFFFF" stroke="#2B2D42" stroke-width="1.8"/>
+              </svg>
+            </div>
+            <div class="menu-text" data-i18n="opt_free">Main Bebas</div>
+          </div>
+        </div>
+
+        <button class="btn-secondary" id="btnBackToHomeFromMode" style="margin-top: 16px;" data-i18n="btn_back">
+          Kembali
+        </button>
+      </div>
+    </section>
+
+    <!-- SKRIN PERMAINAN UTAMA -->
+    <section class="screen" id="screenGame">
+      <div class="game-top-bar">
+        <div class="stat-badge">
+          <!-- Chibi Buku Nota & Pensel -->
+          <svg viewBox="0 0 28 28" fill="none">
+            <rect x="4" y="3" width="16" height="22" rx="4" fill="#FFFBEB" stroke="#2B2D42" stroke-width="2"/>
+            <line x1="8" y1="8" x2="16" y2="8" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="10" cy="14" r="1.2" fill="#2B2D42"/>
+            <circle cx="15" cy="14" r="1.2" fill="#2B2D42"/>
+            <path d="M11.5 16.5 Q12.5 17.5 13.5 16.5" stroke="#2B2D42" stroke-width="1" stroke-linecap="round" fill="none"/>
+            <polygon points="19,17 24,12 26,14 21,19" fill="#FF5A79" stroke="#2B2D42" stroke-width="1.4"/>
+            <polygon points="19,17 21,19 17,21" fill="#FFD166" stroke="#2B2D42" stroke-width="1.4"/>
+          </svg>
+          <span id="gameProgressText">GAMBAR 1 / 10</span>
+        </div>
+        <div class="stat-badge">
+          <!-- Chibi Bintang Markah -->
+          <svg viewBox="0 0 28 28" fill="none">
+            <polygon points="14,2 17,9 25,10 19,16 21,24 14,20 7,24 9,16 3,10 11,9" fill="#FFD166" stroke="#2B2D42" stroke-width="1.8" stroke-linejoin="round"/>
+            <circle cx="11" cy="13" r="1.2" fill="#2B2D42"/>
+            <circle cx="17" cy="13" r="1.2" fill="#2B2D42"/>
+            <path d="M12.5 15.5 Q14 17 15.5 15.5" stroke="#2B2D42" stroke-width="1" stroke-linecap="round" fill="none"/>
+          </svg>
+          <span class="stat-num" id="gameScoreText">0</span>
+        </div>
+      </div>
+
+      <!-- Arahan Mewarna -->
+      <div class="instruction-panel">
+        <div class="instruction-content">
+          <div class="instruction-main" id="instructionText">Warnakan semua bulatan.</div>
+          <div class="instruction-sub" data-i18n="instruction_sub">Pilih warna dan tekan bentuk yang betul.</div>
+        </div>
+        <div class="target-shape-badge" id="targetShapeBadge">
+          <div id="targetShapeSvgContainer"></div>
+          <span id="targetShapeLabel">BULAT</span>
+        </div>
+        <div class="chibi-mascot mascot-bounce" id="mascotGame" style="width:52px; height:52px; margin:0;"></div>
+      </div>
+
+      <!-- Kanvas Mewarna -->
+      <div class="canvas-panel">
+        <div class="canvas-svg-container" id="colourCanvas"></div>
+
+        <!-- Banner Maklum Balas Chibi -->
+        <div class="feedback-banner" id="feedbackBanner">
+          <div class="fb-icon" id="fbIcon"></div>
+          <div class="fb-text" id="fbText">Bagus!</div>
+        </div>
+      </div>
+
+      <!-- Palet Warna Kanak-Kanak -->
+      <div class="palette-container">
+        <div class="palette-label">
+          <span data-i18n="lbl_palette">PALET WARNA</span>
+          <span class="active-color-name" id="activeColorName">MERAH</span>
+        </div>
+        <div class="palette-grid" id="paletteGrid"></div>
+      </div>
+    </section>
+
+    <!-- SKRIN KEPUTUSAN / TAHNIAH -->
+    <section class="screen" id="screenResult">
+      <div class="card">
+        <div class="chibi-mascot mascot-celebrate" id="mascotResult"></div>
+
+        <h1 class="title" data-i18n="result_title">Hebat Sekali!</h1>
+        <h2 class="subtitle" data-i18n="result_sub">Adik telah berjaya mewarna dengan baik!</h2>
+
+        <div style="background:#FFF0F5; border:3px solid #FFE3E9; border-radius:var(--border-radius-md); padding:16px; margin-bottom:16px;">
+          <div style="font-size:14px; font-weight:700; color:#6C757D;" data-i18n="result_total_score">JUMLAH SKOR</div>
+          <div style="font-size:36px; font-weight:800; color:var(--primary-dark);" id="finalScoreDisplay">120</div>
+          <div style="font-size:14px; font-weight:800; color:var(--accent-green); display:flex; align-items:center; justify-content:center; gap:6px; margin-top:4px;">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+              <polygon points="12,2 15,8 22,9 17,14 19,22 12,18 5,22 7,14 2,9 9,8" fill="#FFD166" stroke="#2B2D42" stroke-width="1.8"/>
+            </svg>
+            <span id="resultPraiseText">Bintang Cemerlang!</span>
+          </div>
+        </div>
+
+        <button class="btn-main" id="btnPlayAgain">
+          <span data-i18n="btn_play_again">Main Lagi</span>
+          <svg viewBox="0 0 28 28" width="24" height="24" fill="none">
+            <path d="M22 14 A 8 8 0 1 1 19 8 L22 8 M22 4 L22 8 L18 8" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="btn-secondary" id="btnResultToHome">
+          <span data-i18n="btn_home">Ke Menu Utama</span>
+          <svg viewBox="0 0 28 28" width="22" height="22" fill="none">
+            <polygon points="14,4 4,12 7,12 7,24 21,24 21,12 24,12" fill="#E2E8F0" stroke="#2B2D42" stroke-width="2"/>
+            <rect x="11" y="16" width="6" height="8" rx="2" fill="#FF5A79" stroke="#2B2D42" stroke-width="1.5"/>
+            <circle cx="14" cy="9" r="2" fill="#FFD166"/>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- MODAL: KOLEKSI GAMBAR -->
+    <div class="modal-backdrop" id="modalCollection">
+      <div class="modal-box">
+        <h1 class="title" data-i18n="collection_title">Koleksi Gambar</h1>
+        <h2 class="subtitle" data-i18n="collection_sub">Tekan gambar untuk melihatnya!</h2>
+
+        <div class="collection-grid" id="collectionGrid"></div>
+
+        <button class="btn-secondary" id="btnCloseCollection" style="margin-top:14px;" data-i18n="btn_close">
+          Tutup
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL: PREBIU GAMBAR -->
+    <div class="modal-backdrop" id="modalArtPreview">
+      <div class="modal-box" style="padding:16px;">
+        <div style="width:100%; height:200px; display:flex; align-items:center; justify-content:center; background:#FFF9FA; border-radius:var(--border-radius-md); border:3px solid #FFE3E9; margin-bottom:12px;" id="artPreviewSvg"></div>
+        <h2 id="artPreviewName" style="font-size:20px; font-weight:800; color:var(--primary-dark); margin-bottom:4px;">Nama</h2>
+        <div id="artPreviewEn" style="font-size:14px; font-weight:700; color:#6C757D; margin-bottom:8px;">English Name</div>
+        <div id="artPreviewShapeBadge" style="display:inline-block; font-size:12px; font-weight:800; padding:4px 12px; border-radius:12px; background:#FFE3E9; color:var(--primary-dark);">Bentuk</div>
+        <button class="btn-secondary" id="btnCloseArtPreview" style="margin-top:14px;" data-i18n="btn_close">Tutup</button>
+      </div>
+    </div>
+
+    <!-- Footer Rasmi -->
+    <footer>
+      <span>Kinder Klub | All Rights Reserved</span>
+    </footer>
+  </div>
+
+  <!-- Enjin Logik Javascript -->
+  <script>
+    /* ==========================================================================
+       1. ENJIN TERJEMAHAN & LOKALISASI (BM: TEKAN, FIRUS, GAMBAR)
+       ========================================================================== */
+    const I18N = {
+      ms: {
+        game_title: "Warnakan Bentuk",
+        game_subtitle: "Belajar & Kenali Bentuk Sambil Mewarna",
+        btn_play: "Mula Mewarna!",
+        btn_collection: "Koleksi Gambar",
+        choose_mode_title: "Pilih Bilangan Gambar",
+        choose_mode_sub: "Berapa gambar adik mahu warnakan?",
+        opt_5_q: "5 Gambar",
+        opt_10_q: "10 Gambar",
+        opt_20_q: "20 Gambar",
+        opt_free: "Main Bebas",
+        btn_back: "Kembali",
+        btn_close: "Tutup",
+        btn_home: "Ke Menu Utama",
+        btn_play_again: "Main Lagi",
+        instruction_sub: "Pilih warna dan tekan bentuk yang betul.",
+        lbl_palette: "PALET WARNA",
+        result_title: "Hebat Sekali!",
+        result_sub: "Adik telah berjaya mewarna dengan baik!",
+        result_total_score: "JUMLAH SKOR",
+        collection_title: "Koleksi Gambar",
+        collection_sub: "Tekan gambar untuk melihatnya!",
+        feedback_correct: "Bagus!",
+        feedback_wrong: "Cuba lagi!",
+        question_label: "GAMBAR",
+        free_play_label: "MAIN BEBAS",
+        shapes: {
+          circle: "BULAT",
+          square: "SEGI EMPAT SAMA",
+          triangle: "SEGI TIGA",
+          rectangle: "SEGI EMPAT TEPAT",
+          oval: "BUJUR",
+          star: "BINTANG",
+          heart: "HATI",
+          diamond: "BERLIAN",
+          semicircle: "SEPARUH BULAT",
+          hexagon: "SEGI ENAM",
+          pentagon: "SEGI LIMA",
+          crescent: "BULAN SABIT"
+        },
+        colors: {
+          red: "MERAH",
+          blue: "BIRU",
+          yellow: "KUNING",
+          green: "HIJAU",
+          orange: "JINGGA",
+          pink: "MERAH JAMBU",
+          purple: "UNGU",
+          brown: "COKLAT",
+          black: "HITAM",
+          white: "PUTIH",
+          grey: "KELABU",
+          turquoise: "FIRUS"
+        },
+        inst_all: "Warnakan semua {shape}."
+      },
+      en: {
+        game_title: "Colour the Shape",
+        game_subtitle: "Learn & Identify Shapes While Colouring",
+        btn_play: "Start Colouring!",
+        btn_collection: "Picture Collection",
+        choose_mode_title: "Choose Pictures",
+        choose_mode_sub: "How many pictures would you like to play?",
+        opt_5_q: "5 Pictures",
+        opt_10_q: "10 Pictures",
+        opt_20_q: "20 Pictures",
+        opt_free: "Free Play",
+        btn_back: "Back",
+        btn_close: "Close",
+        btn_home: "Main Menu",
+        btn_play_again: "Play Again",
+        instruction_sub: "Choose a colour and press the correct shape.",
+        lbl_palette: "COLOUR PALETTE",
+        result_title: "Super Job!",
+        result_sub: "You have coloured wonderfully!",
+        result_total_score: "TOTAL SCORE",
+        collection_title: "Picture Collection",
+        collection_sub: "Press any picture to view details!",
+        feedback_correct: "Great!",
+        feedback_wrong: "Try again!",
+        question_label: "PICTURE",
+        free_play_label: "FREE PLAY",
+        shapes: {
+          circle: "CIRCLE",
+          square: "SQUARE",
+          triangle: "TRIANGLE",
+          rectangle: "RECTANGLE",
+          oval: "OVAL",
+          star: "STAR",
+          heart: "HEART",
+          diamond: "DIAMOND",
+          semicircle: "SEMICIRCLE",
+          hexagon: "HEXAGON",
+          pentagon: "PENTAGON",
+          crescent: "CRESCENT"
+        },
+        colors: {
+          red: "RED",
+          blue: "BLUE",
+          yellow: "YELLOW",
+          green: "GREEN",
+          orange: "ORANGE",
+          pink: "PINK",
+          purple: "PURPLE",
+          brown: "BROWN",
+          black: "BLACK",
+          white: "WHITE",
+          grey: "GREY",
+          turquoise: "TURQUOISE"
+        },
+        inst_all: "Colour all the {shape}s."
+      }
+    };
+
+    /* ==========================================================================
+       2. ENJIN BUNYI SINTESIS (Web Audio API)
+       ========================================================================== */
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      playPop() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        const now = this.ctx.currentTime;
+        osc.frequency.setValueAtTime(380, now);
+        osc.frequency.exponentialRampToValueAtTime(750, now + 0.08);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.09);
+      }
+      playCorrect() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          const t = this.ctx.currentTime + idx * 0.07;
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.25, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.23);
+        });
+      }
+      playWrong() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        [280, 230].forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          const t = this.ctx.currentTime + idx * 0.12;
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.2, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.13);
+        });
+      }
+      playCelebration() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const fan = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+        fan.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          const t = this.ctx.currentTime + idx * 0.09;
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.28, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.42);
+        });
+      }
+    }
+    const sound = new SoundEngine();
+
+    /* ==========================================================================
+       3. PALET 12 WARNA KANAK-KANAK
+       ========================================================================== */
+    const COLOR_PALETTE = [
+      { id: 'red', hex: '#FF4B4B', textDark: false },
+      { id: 'blue', hex: '#2B87FF', textDark: false },
+      { id: 'yellow', hex: '#FFD214', textDark: true },
+      { id: 'green', hex: '#22C55E', textDark: false },
+      { id: 'orange', hex: '#FF8A1E', textDark: false },
+      { id: 'pink', hex: '#FF66A6', textDark: false },
+      { id: 'purple', hex: '#9D4EDD', textDark: false },
+      { id: 'brown', hex: '#8B5A2B', textDark: false },
+      { id: 'black', hex: '#2D3142', textDark: false },
+      { id: 'white', hex: '#FFFFFF', textDark: true, isWhite: true },
+      { id: 'grey', hex: '#94A3B8', textDark: false },
+      { id: 'turquoise', hex: '#06D6A0', textDark: false }
+    ];
+
+    /* ==========================================================================
+       4. MASKOT CHIBI SVG & IKON VEKTOR
+       ========================================================================== */
+    function getChibiMascotSvg() {
+      return `
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="36" cy="24" rx="9" ry="20" fill="#FFF0F5" stroke="#2B2D42" stroke-width="3"/>
+        <ellipse cx="36" cy="24" rx="5" ry="14" fill="#FFCCD5"/>
+        <ellipse cx="64" cy="24" rx="9" ry="20" fill="#FFF0F5" stroke="#2B2D42" stroke-width="3"/>
+        <ellipse cx="64" cy="24" rx="5" ry="14" fill="#FFCCD5"/>
+        <path d="M 28 32 C 28 16, 72 16, 72 32 Z" fill="#FF5A79" stroke="#2B2D42" stroke-width="3"/>
+        <circle cx="50" cy="18" r="4" fill="#FFD166" stroke="#2B2D42" stroke-width="2"/>
+        <circle cx="50" cy="56" r="32" fill="#FFFFFF" stroke="#2B2D42" stroke-width="3.5"/>
+        <circle cx="30" cy="62" r="6" fill="#FFB3C1" opacity="0.7"/>
+        <circle cx="70" cy="62" r="6" fill="#FFB3C1" opacity="0.7"/>
+        <ellipse cx="38" cy="53" rx="3.5" ry="4.5" fill="#2B2D42"/>
+        <circle cx="39.5" cy="51.5" r="1.5" fill="#FFFFFF"/>
+        <ellipse cx="62" cy="53" rx="3.5" ry="4.5" fill="#2B2D42"/>
+        <circle cx="63.5" cy="51.5" r="1.5" fill="#FFFFFF"/>
+        <polygon points="50,59 47,56 53,56" fill="#FF5A79"/>
+        <path d="M 46 62 Q 50 66 54 62" stroke="#2B2D42" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <rect x="74" y="62" width="6" height="24" rx="3" fill="#FFD166" stroke="#2B2D42" stroke-width="2" transform="rotate(-30 74 62)"/>
+        <path d="M 83 48 C 83 43 89 43 89 48 C 89 52 83 52 83 48 Z" fill="#4CC9F0" stroke="#2B2D42" stroke-width="2"/>
+      </svg>`;
+    }
+
+    function getShapeIconSvg(shapeType) {
+      switch(shapeType) {
+        case 'circle': return `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#FFE3E9" stroke="#FF5A79" stroke-width="3"/></svg>`;
+        case 'square': return `<svg viewBox="0 0 40 40"><rect x="6" y="6" width="28" height="28" rx="3" fill="#E0F2FE" stroke="#0284C7" stroke-width="3"/></svg>`;
+        case 'triangle': return `<svg viewBox="0 0 40 40"><polygon points="20,5 35,35 5,35" fill="#FEF3C7" stroke="#D97706" stroke-width="3"/></svg>`;
+        case 'rectangle': return `<svg viewBox="0 0 40 40"><rect x="4" y="10" width="32" height="20" rx="3" fill="#DCFCE7" stroke="#16A34A" stroke-width="3"/></svg>`;
+        case 'oval': return `<svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="16" ry="11" fill="#F3E8FF" stroke="#9333EA" stroke-width="3"/></svg>`;
+        case 'star': return `<svg viewBox="0 0 40 40"><polygon points="20,4 24,15 36,15 26,22 30,34 20,27 10,34 14,22 4,15 16,15" fill="#FEF08A" stroke="#CA8A04" stroke-width="2.5"/></svg>`;
+        case 'heart': return `<svg viewBox="0 0 40 40"><path d="M 20 34 C 8 24 4 14 11 8 C 16 4 20 10 20 10 C 20 10 24 4 29 8 C 36 14 32 24 20 34 Z" fill="#FFE4E6" stroke="#E11D48" stroke-width="2.5"/></svg>`;
+        case 'diamond': return `<svg viewBox="0 0 40 40"><polygon points="20,4 35,20 20,36 5,20" fill="#E0E7FF" stroke="#4F46E5" stroke-width="3"/></svg>`;
+        case 'semicircle': return `<svg viewBox="0 0 40 40"><path d="M 6 26 A 14 14 0 0 1 34 26 Z" fill="#CFFAFE" stroke="#0891B2" stroke-width="3"/></svg>`;
+        case 'hexagon': return `<svg viewBox="0 0 40 40"><polygon points="20,5 34,13 34,27 20,35 6,27 6,13" fill="#FCE7F3" stroke="#DB2777" stroke-width="3"/></svg>`;
+        case 'pentagon': return `<svg viewBox="0 0 40 40"><polygon points="20,5 35,16 29,34 11,34 5,16" fill="#EDE9FE" stroke="#7C3AED" stroke-width="3"/></svg>`;
+        case 'crescent': return `<svg viewBox="0 0 40 40"><path d="M 12 8 A 14 14 0 1 0 32 28 A 12 12 0 1 1 12 8 Z" fill="#FEF9C3" stroke="#EAB308" stroke-width="2.5"/></svg>`;
+        default: return `<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="#E2E8F0"/></svg>`;
+      }
+    }
+
+    function getChibiSpeakerSvg(isOn) {
+      if (isOn) {
+        return `
+        <svg viewBox="0 0 28 28" fill="none">
+          <polygon points="5,10 10,10 16,5 16,23 10,18 5,18" fill="#FFCCD5" stroke="#2B2D42" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M20 9 C22 11 22 17 20 19" stroke="#2B2D42" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M23 6 C26 9 26 19 23 22" stroke="#FF5A79" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="9" cy="14" r="1" fill="#2B2D42"/>
+        </svg>`;
+      } else {
+        return `
+        <svg viewBox="0 0 28 28" fill="none">
+          <polygon points="5,10 10,10 16,5 16,23 10,18 5,18" fill="#E2E8F0" stroke="#2B2D42" stroke-width="2.2" stroke-linejoin="round"/>
+          <line x1="20" y1="10" x2="26" y2="18" stroke="#E03E60" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="26" y1="10" x2="20" y2="18" stroke="#E03E60" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="9" cy="14" r="1" fill="#2B2D42"/>
+        </svg>`;
+      }
+    }
+
+    function getChibiFeedbackSvg(isCorrect) {
+      if (isCorrect) {
+        return `
+        <svg viewBox="0 0 36 36" fill="none">
+          <polygon points="7,29 21,25 15,11" fill="#FF5A79" stroke="#2B2D42" stroke-width="2"/>
+          <path d="M15 11 Q20 17 21 25" fill="#FFD166"/>
+          <circle cx="23" cy="9" r="2.5" fill="#4CC9F0"/>
+          <circle cx="27" cy="16" r="2" fill="#06D6A0"/>
+          <polygon points="20,4 22,7 25,7 23,9 24,12 21,10 18,12 19,9 17,7 20,7" fill="#FFD166"/>
+          <circle cx="13" cy="19" r="1" fill="#2B2D42"/>
+          <circle cx="17" cy="18" r="1" fill="#2B2D42"/>
+          <path d="M14 21 Q15.5 22.5 17 21" stroke="#2B2D42" stroke-width="1" stroke-linecap="round" fill="none"/>
+        </svg>`;
+      } else {
+        return `
+        <svg viewBox="0 0 36 36" fill="none">
+          <circle cx="18" cy="18" r="14" fill="#FEF3C7" stroke="#2B2D42" stroke-width="2"/>
+          <ellipse cx="13" cy="17" rx="1.5" ry="2" fill="#2B2D42"/>
+          <ellipse cx="23" cy="17" rx="1.5" ry="2" fill="#2B2D42"/>
+          <circle cx="10" cy="21" r="1.5" fill="#FFB3C1"/>
+          <circle cx="26" cy="21" r="1.5" fill="#FFB3C1"/>
+          <path d="M15 22 Q18 20 21 22" stroke="#2B2D42" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+          <path d="M26 8 C26 6 29 9 29 11 C29 12.5 27.5 13.5 26 12 C25 11 26 9.5 26 8 Z" fill="#4CC9F0" stroke="#2B2D42" stroke-width="1"/>
+        </svg>`;
+      }
+    }
+
+    /* ==========================================================================
+       5. PANGKALAN DATA 52 KARYA SENI CHIBI UNIK
+       ========================================================================== */
+    const ARTWORK_DATABASE = [
+      // Haiwan (1-10)
+      {
+        id: 1, nameBm: "Kucing Comel", nameEn: "Cute Cat", category: "Haiwan",
+        svg: `<svg viewBox="0 0 240 240">
+          <circle id="p1" class="paintable-shape" data-shape="circle" cx="120" cy="130" r="60" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="triangle" points="75,85 95,40 115,80" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="triangle" points="165,85 145,40 125,80" fill="#FFFFFF"/>
+          <ellipse id="p4" class="paintable-shape" data-shape="oval" cx="95" cy="120" rx="9" ry="13" fill="#FFFFFF"/>
+          <ellipse id="p5" class="paintable-shape" data-shape="oval" cx="145" cy="120" rx="9" ry="13" fill="#FFFFFF"/>
+          <path id="p6" class="paintable-shape" data-shape="heart" d="M 120 152 C 114 142 108 136 114 130 C 118 126 120 130 120 130 C 120 130 122 126 126 130 C 132 136 126 142 120 152 Z" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 2, nameBm: "Beruang Manis", nameEn: "Cute Bear", category: "Haiwan",
+        svg: `<svg viewBox="0 0 240 240">
+          <circle id="p1" class="paintable-shape" data-shape="circle" cx="120" cy="125" r="62" fill="#FFFFFF"/>
+          <path id="p2" class="paintable-shape" data-shape="semicircle" d="M 58 85 A 22 22 0 0 1 95 65 Z" fill="#FFFFFF"/>
+          <path id="p3" class="paintable-shape" data-shape="semicircle" d="M 145 65 A 22 22 0 0 1 182 85 Z" fill="#FFFFFF"/>
+          <ellipse id="p4" class="paintable-shape" data-shape="oval" cx="120" cy="140" rx="22" ry="16" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="95" cy="115" r="7" fill="#FFFFFF"/>
+          <circle id="p6" class="paintable-shape" data-shape="circle" cx="145" cy="115" r="7" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 3, nameBm: "Ikan Ceria", nameEn: "Happy Fish", category: "Haiwan",
+        svg: `<svg viewBox="0 0 240 240">
+          <ellipse id="p1" class="paintable-shape" data-shape="oval" cx="115" cy="120" rx="65" ry="46" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="triangle" points="180,120 225,85 225,155" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="triangle" points="115,74 135,40 155,74" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="75" cy="108" r="10" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="45" cy="70" r="12" fill="#FFFFFF"/>
+          <circle id="p6" class="paintable-shape" data-shape="circle" cx="30" cy="45" r="8" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 4, nameBm: "Burung Hantu", nameEn: "Wise Owl", category: "Haiwan",
+        svg: `<svg viewBox="0 0 240 240">
+          <ellipse id="p1" class="paintable-shape" data-shape="oval" cx="120" cy="130" rx="55" ry="65" fill="#FFFFFF"/>
+          <circle id="p2" class="paintable-shape" data-shape="circle" cx="90" cy="110" r="22" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="150" cy="110" r="22" fill="#FFFFFF"/>
+          <polygon id="p4" class="paintable-shape" data-shape="triangle" points="120,135 110,120 130,120" fill="#FFFFFF"/>
+          <path id="p5" class="paintable-shape" data-shape="crescent" d="M 185 45 A 25 25 0 1 0 220 75 A 20 20 0 1 1 185 45 Z" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 5, nameBm: "Katak Kolam", nameEn: "Pond Frog", category: "Haiwan",
+        svg: `<svg viewBox="0 0 240 240">
+          <ellipse id="p1" class="paintable-shape" data-shape="oval" cx="120" cy="135" rx="65" ry="50" fill="#FFFFFF"/>
+          <circle id="p2" class="paintable-shape" data-shape="circle" cx="75" cy="85" r="20" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="165" cy="85" r="20" fill="#FFFFFF"/>
+          <ellipse id="p4" class="paintable-shape" data-shape="oval" cx="70" cy="140" rx="12" ry="8" fill="#FFFFFF"/>
+          <ellipse id="p5" class="paintable-shape" data-shape="oval" cx="170" cy="140" rx="12" ry="8" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 6, nameBm: "Rama-rama", nameEn: "Butterfly", category: "Haiwan",
+        svg: `<svg viewBox="0 0 240 240">
+          <ellipse id="p1" class="paintable-shape" data-shape="oval" cx="120" cy="120" rx="12" ry="55" fill="#FFFFFF"/>
+          <path id="p2" class="paintable-shape" data-shape="heart" d="M 110 95 C 70 50 30 75 55 115 C 75 140 110 115 110 115 Z" fill="#FFFFFF"/>
+          <path id="p3" class="paintable-shape" data-shape="heart" d="M 130 95 C 170 50 210 75 185 115 C 165 140 130 115 130 115 Z" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="95" cy="45" r="7" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="145" cy="45" r="7" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 7, nameBm: "Ketam Comel", nameEn: "Cute Crab", category: "Haiwan",
+        svg: `<svg viewBox="0 0 240 240">
+          <path id="p1" class="paintable-shape" data-shape="semicircle" d="M 60 150 A 60 60 0 0 1 180 150 Z" fill="#FFFFFF"/>
+          <circle id="p2" class="paintable-shape" data-shape="circle" cx="95" cy="85" r="14" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="145" cy="85" r="14" fill="#FFFFFF"/>
+          <ellipse id="p4" class="paintable-shape" data-shape="oval" cx="45" cy="95" rx="20" ry="14" fill="#FFFFFF"/>
+          <ellipse id="p5" class="paintable-shape" data-shape="oval" cx="195" cy="95" rx="20" ry="14" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 8, nameBm: "Anak Ayam", nameEn: "Little Chick", category: "Haiwan",
+        svg: `<svg viewBox="0 0 240 240">
+          <circle id="p1" class="paintable-shape" data-shape="circle" cx="120" cy="120" r="55" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="triangle" points="120,130 100,115 120,105" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="100" cy="100" r="7" fill="#FFFFFF"/>
+          <ellipse id="p4" class="paintable-shape" data-shape="oval" cx="145" cy="130" rx="16" ry="10" fill="#FFFFFF"/>
+          <path id="p5" class="paintable-shape" data-shape="heart" d="M 120 40 C 114 30 108 25 114 20 C 118 16 120 20 120 20 C 120 20 122 16 126 20 C 132 25 126 30 120 40 Z" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 9, nameBm: "Penguin Ais", nameEn: "Ice Penguin", category: "Haiwan",
+        svg: `<svg viewBox="0 0 240 240">
+          <ellipse id="p1" class="paintable-shape" data-shape="oval" cx="120" cy="125" rx="55" ry="65" fill="#FFFFFF"/>
+          <ellipse id="p2" class="paintable-shape" data-shape="oval" cx="120" cy="135" rx="35" ry="45" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="triangle" points="120,110 110,95 130,95" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="95" cy="85" r="6" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="145" cy="85" r="6" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 10, nameBm: "Arnab Comel", nameEn: "Chibi Bunny", category: "Haiwan",
+        svg: `<svg viewBox="0 0 240 240">
+          <circle id="p1" class="paintable-shape" data-shape="circle" cx="120" cy="135" r="55" fill="#FFFFFF"/>
+          <ellipse id="p2" class="paintable-shape" data-shape="oval" cx="90" cy="55" rx="14" ry="35" fill="#FFFFFF"/>
+          <ellipse id="p3" class="paintable-shape" data-shape="oval" cx="150" cy="55" rx="14" ry="35" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="95" cy="125" r="6" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="145" cy="125" r="6" fill="#FFFFFF"/>
+          <path id="p6" class="paintable-shape" data-shape="heart" d="M 120 145 C 116 138 110 134 115 130 C 118 127 120 130 120 130 C 120 130 122 127 125 130 C 130 134 124 138 120 145 Z" fill="#FFFFFF"/>
+        </svg>`
+      },
+
+      // Buah (11-16)
+      {
+        id: 11, nameBm: "Epal Manis", nameEn: "Sweet Apple", category: "Buah",
+        svg: `<svg viewBox="0 0 240 240">
+          <circle id="p1" class="paintable-shape" data-shape="circle" cx="120" cy="135" r="65" fill="#FFFFFF"/>
+          <rect id="p2" class="paintable-shape" data-shape="rectangle" x="114" y="40" width="12" height="35" rx="4" fill="#FFFFFF"/>
+          <ellipse id="p3" class="paintable-shape" data-shape="oval" cx="145" cy="55" rx="18" ry="10" transform="rotate(-20 145 55)" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="95" cy="125" r="6" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="145" cy="125" r="6" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 12, nameBm: "Tembikai Segar", nameEn: "Watermelon Slice", category: "Buah",
+        svg: `<svg viewBox="0 0 240 240">
+          <path id="p1" class="paintable-shape" data-shape="semicircle" d="M 30 110 A 90 90 0 0 0 210 110 Z" fill="#FFFFFF"/>
+          <ellipse id="p2" class="paintable-shape" data-shape="oval" cx="85" cy="135" rx="5" ry="8" fill="#FFFFFF"/>
+          <ellipse id="p3" class="paintable-shape" data-shape="oval" cx="120" cy="145" rx="5" ry="8" fill="#FFFFFF"/>
+          <ellipse id="p4" class="paintable-shape" data-shape="oval" cx="155" cy="135" rx="5" ry="8" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 13, nameBm: "Strawberi", nameEn: "Strawberry", category: "Buah",
+        svg: `<svg viewBox="0 0 240 240">
+          <path id="p1" class="paintable-shape" data-shape="heart" d="M 120 205 C 50 150 40 85 85 65 C 110 52 120 75 120 75 C 120 75 130 52 155 65 C 200 85 190 150 120 205 Z" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="star" points="120,40 125,55 140,55 128,65 133,80 120,70 107,80 112,65 100,55 115,55" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="95" cy="115" r="5" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="145" cy="115" r="5" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="120" cy="145" r="5" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 14, nameBm: "Pisang Manis", nameEn: "Sweet Banana", category: "Buah",
+        svg: `<svg viewBox="0 0 240 240">
+          <path id="p1" class="paintable-shape" data-shape="crescent" d="M 60 50 A 90 90 0 0 0 190 180 A 110 110 0 0 1 60 50 Z" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="star" points="185,55 188,65 200,65 190,72 194,82 185,76 176,82 180,72 170,65 182,65" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="105" cy="105" r="6" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 15, nameBm: "Buah Oren", nameEn: "Orange", category: "Buah",
+        svg: `<svg viewBox="0 0 240 240">
+          <circle id="p1" class="paintable-shape" data-shape="circle" cx="120" cy="130" r="62" fill="#FFFFFF"/>
+          <ellipse id="p2" class="paintable-shape" data-shape="oval" cx="145" cy="55" rx="20" ry="10" transform="rotate(-30 145 55)" fill="#FFFFFF"/>
+          <rect id="p3" class="paintable-shape" data-shape="rectangle" x="115" y="45" width="10" height="25" rx="3" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="95" cy="120" r="6" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="145" cy="120" r="6" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 16, nameBm: "Nanas Tropika", nameEn: "Pineapple", category: "Buah",
+        svg: `<svg viewBox="0 0 240 240">
+          <ellipse id="p1" class="paintable-shape" data-shape="oval" cx="120" cy="140" rx="50" ry="60" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="triangle" points="120,35 105,80 135,80" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="triangle" points="95,45 85,85 115,85" fill="#FFFFFF"/>
+          <polygon id="p4" class="paintable-shape" data-shape="triangle" points="145,45 125,85 155,85" fill="#FFFFFF"/>
+          <polygon id="p5" class="paintable-shape" data-shape="diamond" points="120,115 135,130 120,145 105,130" fill="#FFFFFF"/>
+        </svg>`
+      },
+
+      // Makanan (17-22)
+      {
+        id: 17, nameBm: "Aiskrim Kon", nameEn: "Ice Cream Cone", category: "Makanan",
+        svg: `<svg viewBox="0 0 240 240">
+          <polygon id="p1" class="paintable-shape" data-shape="triangle" points="120,220 70,120 170,120" fill="#FFFFFF"/>
+          <circle id="p2" class="paintable-shape" data-shape="circle" cx="120" cy="95" r="45" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="120" cy="40" r="14" fill="#FFFFFF"/>
+          <polygon id="p4" class="paintable-shape" data-shape="star" points="185,45 188,55 198,55 190,62 193,72 185,66 177,72 180,62 172,55 182,55" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 18, nameBm: "Donat Manis", nameEn: "Sweet Donut", category: "Makanan",
+        svg: `<svg viewBox="0 0 240 240">
+          <circle id="p1" class="paintable-shape" data-shape="circle" cx="120" cy="120" r="68" fill="#FFFFFF"/>
+          <circle id="p2" class="paintable-shape" data-shape="circle" cx="120" cy="120" r="25" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="star" points="120,65 122,72 130,72 124,76 126,84 120,80 114,84 116,76 110,72 118,72" fill="#FFFFFF"/>
+          <polygon id="p4" class="paintable-shape" data-shape="star" points="75,120 77,126 84,126 79,130 81,137 75,133 69,137 71,130 66,126 73,126" fill="#FFFFFF"/>
+          <polygon id="p5" class="paintable-shape" data-shape="star" points="165,120 167,126 174,126 169,130 171,137 165,133 159,137 161,130 156,126 163,126" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 19, nameBm: "Kek Cawan", nameEn: "Cupcake", category: "Makanan",
+        svg: `<svg viewBox="0 0 240 240">
+          <path id="p1" class="paintable-shape" data-shape="semicircle" d="M 60 120 A 60 60 0 0 1 180 120 Z" fill="#FFFFFF"/>
+          <rect id="p2" class="paintable-shape" data-shape="rectangle" x="70" y="120" width="100" height="65" rx="6" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="120" cy="50" r="14" fill="#FFFFFF"/>
+          <path id="p4" class="paintable-shape" data-shape="heart" d="M 120 155 C 114 145 108 140 114 135 C 118 131 120 135 120 135 C 120 135 122 131 126 135 C 132 140 126 145 120 155 Z" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 20, nameBm: "Kepingan Piza", nameEn: "Pizza Slice", category: "Makanan",
+        svg: `<svg viewBox="0 0 240 240">
+          <polygon id="p1" class="paintable-shape" data-shape="triangle" points="120,215 50,75 190,75" fill="#FFFFFF"/>
+          <circle id="p2" class="paintable-shape" data-shape="circle" cx="100" cy="115" r="12" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="140" cy="120" r="12" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="120" cy="160" r="10" fill="#FFFFFF"/>
+          <rect id="p5" class="paintable-shape" data-shape="rectangle" x="50" y="55" width="140" height="20" rx="6" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 21, nameBm: "Roti Bakar", nameEn: "Toast", category: "Makanan",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="square" x="60" y="70" width="120" height="120" rx="16" fill="#FFFFFF"/>
+          <path id="p2" class="paintable-shape" data-shape="heart" d="M 120 135 C 105 115 95 100 105 90 C 112 84 120 92 120 92 C 120 92 128 84 135 90 C 145 100 135 115 120 135 Z" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="90" cy="145" r="6" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="150" cy="145" r="6" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 22, nameBm: "Kotak Jus", nameEn: "Juice Box", category: "Makanan",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="rectangle" x="75" y="75" width="90" height="125" rx="12" fill="#FFFFFF"/>
+          <rect id="p2" class="paintable-shape" data-shape="rectangle" x="135" y="30" width="10" height="45" rx="3" transform="rotate(15 135 30)" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="120" cy="135" r="22" fill="#FFFFFF"/>
+          <polygon id="p4" class="paintable-shape" data-shape="star" points="120,120 123,128 132,128 125,133 128,141 120,136 112,141 115,133 108,128 117,128" fill="#FFFFFF"/>
+        </svg>`
+      },
+
+      // Mainan (23-28)
+      {
+        id: 23, nameBm: "Robot Chibi", nameEn: "Chibi Robot", category: "Mainan",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="square" x="75" y="45" width="90" height="70" rx="10" fill="#FFFFFF"/>
+          <rect id="p2" class="paintable-shape" data-shape="rectangle" x="70" y="125" width="100" height="80" rx="12" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="95" cy="80" r="10" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="145" cy="80" r="10" fill="#FFFFFF"/>
+          <path id="p5" class="paintable-shape" data-shape="heart" d="M 120 170 C 110 155 100 148 108 140 C 114 135 120 142 120 142 C 120 142 126 135 132 140 C 140 148 130 155 120 170 Z" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 24, nameBm: "Layang-layang", nameEn: "Kite", category: "Mainan",
+        svg: `<svg viewBox="0 0 240 240">
+          <polygon id="p1" class="paintable-shape" data-shape="diamond" points="120,35 185,115 120,195 55,115" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="triangle" points="120,205 110,225 130,225" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="100" cy="110" r="7" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="140" cy="110" r="7" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 25, nameBm: "Kereta Api Mainan", nameEn: "Toy Train", category: "Mainan",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="rectangle" x="50" y="95" width="130" height="70" rx="8" fill="#FFFFFF"/>
+          <rect id="p2" class="paintable-shape" data-shape="square" x="120" y="55" width="60" height="50" rx="6" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="75" cy="175" r="18" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="120" cy="175" r="18" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="165" cy="175" r="18" fill="#FFFFFF"/>
+          <polygon id="p6" class="paintable-shape" data-shape="triangle" points="40,140 20,165 40,165" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 26, nameBm: "Yo-yo Comel", nameEn: "Cute Yo-yo", category: "Mainan",
+        svg: `<svg viewBox="0 0 240 240">
+          <circle id="p1" class="paintable-shape" data-shape="circle" cx="120" cy="125" r="65" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="star" points="120,95 126,112 145,112 130,124 135,142 120,132 105,142 110,124 95,112 114,112" fill="#FFFFFF"/>
+          <path id="p3" class="paintable-shape" data-shape="crescent" d="M 120 40 A 20 20 0 1 0 145 65 A 16 16 0 1 1 120 40 Z" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 27, nameBm: "Blok Bangunan", nameEn: "Building Blocks", category: "Mainan",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="square" x="50" y="130" width="65" height="65" rx="6" fill="#FFFFFF"/>
+          <rect id="p2" class="paintable-shape" data-shape="square" x="125" y="130" width="65" height="65" rx="6" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="triangle" points="120,50 65,120 175,120" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="82" cy="162" r="12" fill="#FFFFFF"/>
+          <polygon id="p5" class="paintable-shape" data-shape="star" points="157,150 160,157 167,157 162,161 164,168 157,164 150,168 152,161 147,157 154,157" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 28, nameBm: "Bola Pantai", nameEn: "Beach Ball", category: "Mainan",
+        svg: `<svg viewBox="0 0 240 240">
+          <circle id="p1" class="paintable-shape" data-shape="circle" cx="120" cy="120" r="70" fill="#FFFFFF"/>
+          <circle id="p2" class="paintable-shape" data-shape="circle" cx="120" cy="70" r="14" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="star" points="120,120 124,130 135,130 127,137 130,147 120,142 110,147 113,137 105,130 116,130" fill="#FFFFFF"/>
+        </svg>`
+      },
+
+      // Kenderaan (29-34)
+      {
+        id: 29, nameBm: "Roket Angkasa", nameEn: "Space Rocket", category: "Kenderaan",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="rectangle" x="90" y="75" width="60" height="90" rx="8" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="triangle" points="120,25 90,75 150,75" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="triangle" points="90,140 55,175 90,175" fill="#FFFFFF"/>
+          <polygon id="p4" class="paintable-shape" data-shape="triangle" points="150,140 185,175 150,175" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="120" cy="115" r="16" fill="#FFFFFF"/>
+          <polygon id="p6" class="paintable-shape" data-shape="triangle" points="120,215 105,175 135,175" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 30, nameBm: "Kereta Comel", nameEn: "Cute Car", category: "Kenderaan",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="rectangle" x="40" y="115" width="160" height="50" rx="10" fill="#FFFFFF"/>
+          <path id="p2" class="paintable-shape" data-shape="semicircle" d="M 75 115 A 45 45 0 0 1 165 115 Z" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="75" cy="170" r="18" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="165" cy="170" r="18" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="190" cy="130" r="8" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 31, nameBm: "Kapal Layar", nameEn: "Sailboat", category: "Kenderaan",
+        svg: `<svg viewBox="0 0 240 240">
+          <path id="p1" class="paintable-shape" data-shape="semicircle" d="M 45 155 A 75 75 0 0 0 195 155 Z" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="triangle" points="115,45 60,145 115,145" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="triangle" points="125,65 175,145 125,145" fill="#FFFFFF"/>
+          <polygon id="p4" class="paintable-shape" data-shape="star" points="190,45 193,55 203,55 195,62 198,72 190,66 182,72 185,62 177,55 187,55" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 32, nameBm: "Kapal Terbang", nameEn: "Airplane", category: "Kenderaan",
+        svg: `<svg viewBox="0 0 240 240">
+          <ellipse id="p1" class="paintable-shape" data-shape="oval" cx="120" cy="120" rx="80" ry="25" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="triangle" points="120,115 155,50 170,115" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="triangle" points="120,125 155,190 170,125" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="80" cy="120" r="7" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="105" cy="120" r="7" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 33, nameBm: "Bas Sekolah", nameEn: "School Bus", category: "Kenderaan",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="rectangle" x="40" y="80" width="160" height="85" rx="14" fill="#FFFFFF"/>
+          <rect id="p2" class="paintable-shape" data-shape="square" x="60" y="95" width="30" height="30" rx="4" fill="#FFFFFF"/>
+          <rect id="p3" class="paintable-shape" data-shape="square" x="105" y="95" width="30" height="30" rx="4" fill="#FFFFFF"/>
+          <rect id="p4" class="paintable-shape" data-shape="square" x="150" y="95" width="30" height="30" rx="4" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="80" cy="170" r="18" fill="#FFFFFF"/>
+          <circle id="p6" class="paintable-shape" data-shape="circle" cx="160" cy="170" r="18" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 34, nameBm: "Helikopter", nameEn: "Helicopter", category: "Kenderaan",
+        svg: `<svg viewBox="0 0 240 240">
+          <ellipse id="p1" class="paintable-shape" data-shape="oval" cx="105" cy="130" rx="55" ry="40" fill="#FFFFFF"/>
+          <rect id="p2" class="paintable-shape" data-shape="rectangle" x="50" y="65" width="120" height="12" rx="4" fill="#FFFFFF"/>
+          <rect id="p3" class="paintable-shape" data-shape="rectangle" x="150" y="122" width="55" height="16" rx="4" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="85" cy="125" r="14" fill="#FFFFFF"/>
+        </svg>`
+      },
+
+      // Barang Sekolah (35-39)
+      {
+        id: 35, nameBm: "Pensel Ceria", nameEn: "Happy Pencil", category: "Barang Sekolah",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="rectangle" x="95" y="80" width="50" height="95" rx="4" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="triangle" points="120,25 95,80 145,80" fill="#FFFFFF"/>
+          <path id="p3" class="paintable-shape" data-shape="semicircle" d="M 95 175 A 25 25 0 0 0 145 175 Z" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="110" cy="115" r="5" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="130" cy="115" r="5" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 36, nameBm: "Pembaris", nameEn: "Ruler", category: "Barang Sekolah",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="rectangle" x="45" y="95" width="150" height="50" rx="8" fill="#FFFFFF"/>
+          <circle id="p2" class="paintable-shape" data-shape="circle" cx="65" cy="120" r="8" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="star" points="165,110 167,117 175,117 169,122 171,130 165,125 159,130 161,122 155,117 163,117" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 37, nameBm: "Buku Cerita", nameEn: "Story Book", category: "Barang Sekolah",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="rectangle" x="55" y="60" width="130" height="120" rx="10" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="star" points="120,95 124,107 137,107 127,115 131,127 120,120 109,127 113,115 103,107 116,107" fill="#FFFFFF"/>
+          <path id="p3" class="paintable-shape" data-shape="heart" d="M 120 160 C 114 150 108 145 114 140 C 118 136 120 140 120 140 C 120 140 122 136 126 140 C 132 145 126 150 120 160 Z" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 38, nameBm: "Beg Sekolah", nameEn: "School Bag", category: "Barang Sekolah",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="rectangle" x="65" y="80" width="110" height="110" rx="16" fill="#FFFFFF"/>
+          <rect id="p2" class="paintable-shape" data-shape="square" x="85" y="125" width="70" height="50" rx="8" fill="#FFFFFF"/>
+          <path id="p3" class="paintable-shape" data-shape="semicircle" d="M 95 80 A 25 25 0 0 1 145 80 Z" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="120" cy="145" r="7" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 39, nameBm: "Botol Gam", nameEn: "Glue Bottle", category: "Barang Sekolah",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="rectangle" x="80" y="95" width="80" height="105" rx="12" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="triangle" points="120,40 95,95 145,95" fill="#FFFFFF"/>
+          <ellipse id="p3" class="paintable-shape" data-shape="oval" cx="120" cy="145" rx="25" ry="18" fill="#FFFFFF"/>
+        </svg>`
+      },
+
+      // Alam Semula Jadi (40-44)
+      {
+        id: 40, nameBm: "Bunga Matahari", nameEn: "Sunflower", category: "Alam",
+        svg: `<svg viewBox="0 0 240 240">
+          <circle id="p1" class="paintable-shape" data-shape="circle" cx="120" cy="105" r="35" fill="#FFFFFF"/>
+          <ellipse id="p2" class="paintable-shape" data-shape="oval" cx="120" cy="50" rx="14" ry="22" fill="#FFFFFF"/>
+          <ellipse id="p3" class="paintable-shape" data-shape="oval" cx="120" cy="160" rx="14" ry="22" fill="#FFFFFF"/>
+          <ellipse id="p4" class="paintable-shape" data-shape="oval" cx="65" cy="105" rx="22" ry="14" fill="#FFFFFF"/>
+          <ellipse id="p5" class="paintable-shape" data-shape="oval" cx="175" cy="105" rx="22" ry="14" fill="#FFFFFF"/>
+          <rect id="p6" class="paintable-shape" data-shape="rectangle" x="115" y="175" width="10" height="45" rx="4" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 41, nameBm: "Awan & Pelangi", nameEn: "Rainbow Cloud", category: "Alam",
+        svg: `<svg viewBox="0 0 240 240">
+          <path id="p1" class="paintable-shape" data-shape="semicircle" d="M 40 140 A 80 80 0 0 1 200 140 Z" fill="#FFFFFF"/>
+          <circle id="p2" class="paintable-shape" data-shape="circle" cx="70" cy="150" r="28" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="110" cy="145" r="32" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="155" cy="150" r="26" fill="#FFFFFF"/>
+          <polygon id="p5" class="paintable-shape" data-shape="star" points="185,50 188,58 197,58 190,64 193,73 185,67 177,73 180,64 173,58 182,58" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 42, nameBm: "Pokok Cendawan", nameEn: "Mushroom", category: "Alam",
+        svg: `<svg viewBox="0 0 240 240">
+          <path id="p1" class="paintable-shape" data-shape="semicircle" d="M 45 130 A 75 75 0 0 1 195 130 Z" fill="#FFFFFF"/>
+          <rect id="p2" class="paintable-shape" data-shape="rectangle" x="95" y="130" width="50" height="65" rx="8" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="90" cy="100" r="10" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="150" cy="100" r="10" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="120" cy="75" r="12" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 43, nameBm: "Pohon Krismas", nameEn: "Pine Tree", category: "Alam",
+        svg: `<svg viewBox="0 0 240 240">
+          <polygon id="p1" class="paintable-shape" data-shape="triangle" points="120,45 80,95 160,95" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="triangle" points="120,85 70,140 170,140" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="triangle" points="120,125 55,180 185,180" fill="#FFFFFF"/>
+          <rect id="p4" class="paintable-shape" data-shape="rectangle" x="108" y="180" width="24" height="35" rx="4" fill="#FFFFFF"/>
+          <polygon id="p5" class="paintable-shape" data-shape="star" points="120,20 124,30 135,30 127,37 130,48 120,42 110,48 113,37 105,30 116,30" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 44, nameBm: "Bintang Malam", nameEn: "Night Star", category: "Alam",
+        svg: `<svg viewBox="0 0 240 240">
+          <polygon id="p1" class="paintable-shape" data-shape="star" points="120,30 145,85 205,90 160,135 175,195 120,165 65,195 80,135 35,90 95,85" fill="#FFFFFF"/>
+          <circle id="p2" class="paintable-shape" data-shape="circle" cx="100" cy="115" r="7" fill="#FFFFFF"/>
+          <circle id="p3" class="paintable-shape" data-shape="circle" cx="140" cy="115" r="7" fill="#FFFFFF"/>
+          <polygon id="p4" class="paintable-shape" data-shape="diamond" points="195,40 205,52 195,64 185,52" fill="#FFFFFF"/>
+        </svg>`
+      },
+
+      // Fantasi (45-48)
+      {
+        id: 45, nameBm: "Mahkota Puteri", nameEn: "Princess Crown", category: "Fantasi",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="rectangle" x="50" y="150" width="140" height="35" rx="6" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="triangle" points="60,150 75,90 95,150" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="triangle" points="105,150 120,70 135,150" fill="#FFFFFF"/>
+          <polygon id="p4" class="paintable-shape" data-shape="triangle" points="145,150 165,90 180,150" fill="#FFFFFF"/>
+          <circle id="p5" class="paintable-shape" data-shape="circle" cx="120" cy="167" r="10" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 46, nameBm: "Tongkat Ajaib", nameEn: "Magic Wand", category: "Fantasi",
+        svg: `<svg viewBox="0 0 240 240">
+          <polygon id="p1" class="paintable-shape" data-shape="star" points="120,35 132,65 165,65 138,85 148,118 120,98 92,118 102,85 75,65 108,65" fill="#FFFFFF"/>
+          <rect id="p2" class="paintable-shape" data-shape="rectangle" x="113" y="115" width="14" height="95" rx="5" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="diamond" points="60,120 72,135 60,150 48,135" fill="#FFFFFF"/>
+          <polygon id="p4" class="paintable-shape" data-shape="diamond" points="180,120 192,135 180,150 168,135" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 47, nameBm: "Istana Comel", nameEn: "Chibi Castle", category: "Fantasi",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="rectangle" x="80" y="110" width="80" height="85" rx="6" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="triangle" points="120,50 85,110 155,110" fill="#FFFFFF"/>
+          <rect id="p3" class="paintable-shape" data-shape="rectangle" x="50" y="125" width="30" height="70" rx="4" fill="#FFFFFF"/>
+          <polygon id="p4" class="paintable-shape" data-shape="triangle" points="65,80 45,125 85,125" fill="#FFFFFF"/>
+          <path id="p5" class="paintable-shape" data-shape="semicircle" d="M 105 195 A 15 15 0 0 1 135 195 Z" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 48, nameBm: "Bintang Angkasa", nameEn: "Shooting Star", category: "Fantasi",
+        svg: `<svg viewBox="0 0 240 240">
+          <polygon id="p1" class="paintable-shape" data-shape="star" points="155,60 168,85 198,85 174,103 183,130 155,114 127,130 136,103 112,85 142,85" fill="#FFFFFF"/>
+          <rect id="p2" class="paintable-shape" data-shape="rectangle" x="50" y="125" width="90" height="16" rx="6" transform="rotate(-30 50 125)" fill="#FFFFFF"/>
+          <rect id="p3" class="paintable-shape" data-shape="rectangle" x="70" y="155" width="80" height="14" rx="5" transform="rotate(-30 70 155)" fill="#FFFFFF"/>
+        </svg>`
+      },
+
+      // Barang Harian (49-52)
+      {
+        id: 49, nameBm: "Jam Dinding", nameEn: "Wall Clock", category: "Barang Harian",
+        svg: `<svg viewBox="0 0 240 240">
+          <circle id="p1" class="paintable-shape" data-shape="circle" cx="120" cy="120" r="70" fill="#FFFFFF"/>
+          <circle id="p2" class="paintable-shape" data-shape="circle" cx="120" cy="120" r="10" fill="#FFFFFF"/>
+          <rect id="p3" class="paintable-shape" data-shape="rectangle" x="116" y="75" width="8" height="45" rx="3" fill="#FFFFFF"/>
+          <rect id="p4" class="paintable-shape" data-shape="rectangle" x="120" y="116" width="35" height="8" rx="3" fill="#FFFFFF"/>
+          <rect id="p5" class="paintable-shape" data-shape="square" x="105" y="25" width="30" height="25" rx="5" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 50, nameBm: "Cermin Mata", nameEn: "Glasses", category: "Barang Harian",
+        svg: `<svg viewBox="0 0 240 240">
+          <circle id="p1" class="paintable-shape" data-shape="circle" cx="75" cy="120" r="38" fill="#FFFFFF"/>
+          <circle id="p2" class="paintable-shape" data-shape="circle" cx="165" cy="120" r="38" fill="#FFFFFF"/>
+          <rect id="p3" class="paintable-shape" data-shape="rectangle" x="110" y="115" width="20" height="10" rx="3" fill="#FFFFFF"/>
+          <polygon id="p4" class="paintable-shape" data-shape="star" points="75,105 77,112 84,112 79,116 81,123 75,119 69,123 71,116 66,112 73,112" fill="#FFFFFF"/>
+          <polygon id="p5" class="paintable-shape" data-shape="star" points="165,105 167,112 174,112 169,116 171,123 165,119 159,123 161,116 156,112 163,112" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 51, nameBm: "Rumah Comel", nameEn: "Cute House", category: "Barang Harian",
+        svg: `<svg viewBox="0 0 240 240">
+          <rect id="p1" class="paintable-shape" data-shape="square" x="65" y="105" width="110" height="95" rx="6" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="triangle" points="120,40 50,105 190,105" fill="#FFFFFF"/>
+          <rect id="p3" class="paintable-shape" data-shape="rectangle" x="100" y="145" width="40" height="55" rx="4" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="120" cy="80" r="14" fill="#FFFFFF"/>
+        </svg>`
+      },
+      {
+        id: 52, nameBm: "Sarang Lebah", nameEn: "Honeycomb", category: "Alam",
+        svg: `<svg viewBox="0 0 240 240">
+          <polygon id="p1" class="paintable-shape" data-shape="hexagon" points="120,50 155,70 155,110 120,130 85,110 85,70" fill="#FFFFFF"/>
+          <polygon id="p2" class="paintable-shape" data-shape="hexagon" points="75,120 110,140 110,180 75,200 40,180 40,140" fill="#FFFFFF"/>
+          <polygon id="p3" class="paintable-shape" data-shape="hexagon" points="165,120 200,140 200,180 165,200 130,180 130,140" fill="#FFFFFF"/>
+          <circle id="p4" class="paintable-shape" data-shape="circle" cx="120" cy="90" r="8" fill="#FFFFFF"/>
+        </svg>`
+      }
+    ];
+
+    /* ==========================================================================
+       6. PENGURUSAN STATUS & SIMPANAN TEMPATAN
+       ========================================================================== */
+    const STORAGE_KEYS = {
+      LANG: 'wbs_lang',
+      SOUND: 'wbs_sound'
+    };
+
+    const gameState = {
+      lang: 'ms',
+      selectedColor: COLOR_PALETTE[0],
+      modeCount: 10,
+      currentQuestionIndex: 0,
+      totalQuestions: 10,
+      score: 0,
+      correctInRound: 0,
+      targetNeeded: 0,
+      currentArtwork: null,
+      currentTargetShape: 'circle',
+      recentQuestionsHistory: [],
+      recentArtworksHistory: [],
+      isTransitioning: false
+    };
+
+    function loadSavedData() {
+      const savedLang = localStorage.getItem(STORAGE_KEYS.LANG);
+      if (savedLang === 'en' || savedLang === 'ms') gameState.lang = savedLang;
+
+      const savedSound = localStorage.getItem(STORAGE_KEYS.SOUND);
+      if (savedSound !== null) sound.enabled = savedSound === 'true';
+    }
+
+    /* ==========================================================================
+       7. KEMAS KINI PAPARAN & BAHASA
+       ========================================================================== */
+    function applyTranslations() {
+      const t = I18N[gameState.lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.textContent = t[key];
+      });
+
+      const langToggle = document.getElementById('btnLangToggle');
+      if (langToggle) langToggle.textContent = gameState.lang === 'ms' ? 'BM (Melayu)' : 'EN (English)';
+
+      updateActiveColorLabel();
+      updateSoundButtonDisplay();
+    }
+
+    function updateSoundButtonDisplay() {
+      const btn = document.getElementById('btnSoundToggle');
+      if (btn) btn.innerHTML = getChibiSpeakerSvg(sound.enabled);
+    }
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById(screenId);
+      if (target) target.classList.add('active');
+
+      const btnHome = document.getElementById('btnHeaderHome');
+      if (btnHome) {
+        btnHome.style.visibility = (screenId === 'screenHome') ? 'hidden' : 'visible';
+      }
+    }
+
+    function updateActiveColorLabel() {
+      const label = document.getElementById('activeColorName');
+      if (label && gameState.selectedColor) {
+        const colorKey = gameState.selectedColor.id;
+        label.textContent = I18N[gameState.lang].colors[colorKey] || colorKey.toUpperCase();
+      }
+    }
+
+    function initColorPalette() {
+      const grid = document.getElementById('paletteGrid');
+      grid.innerHTML = '';
+      COLOR_PALETTE.forEach((col, idx) => {
+        const btn = document.createElement('div');
+        btn.className = `color-btn ${col.isWhite ? 'white-color' : ''} ${idx === 0 ? 'active' : ''}`;
+        btn.style.backgroundColor = col.hex;
+        btn.title = col.id;
+        btn.addEventListener('click', () => {
+          sound.playPop();
+          document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          gameState.selectedColor = col;
+          updateActiveColorLabel();
+          setMascotState('mascotGame', 'mascot-jump');
+        });
+        grid.appendChild(btn);
+      });
+    }
+
+    /* ==========================================================================
+       8. PENJANA GAMBAR DINAMIK (TIADA ULANGAN SOALAN SAMA)
+       ========================================================================== */
+    function startGame(questionCount) {
+      gameState.modeCount = questionCount;
+      gameState.totalQuestions = questionCount === 'free' ? 999 : questionCount;
+      gameState.currentQuestionIndex = 0;
+      gameState.score = 0;
+      gameState.recentQuestionsHistory = [];
+      gameState.recentArtworksHistory = [];
+      gameState.isTransitioning = false;
+
+      document.getElementById('gameScoreText').textContent = '0';
+      showScreen('screenGame');
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      gameState.isTransitioning = false;
+
+      if (gameState.modeCount !== 'free' && gameState.currentQuestionIndex >= gameState.totalQuestions) {
+        endGame();
+        return;
+      }
+
+      gameState.currentQuestionIndex++;
+
+      const t = I18N[gameState.lang];
+      const progEl = document.getElementById('gameProgressText');
+      if (gameState.modeCount === 'free') {
+        progEl.textContent = `${t.free_play_label} • ${t.question_label} ${gameState.currentQuestionIndex}`;
+      } else {
+        progEl.textContent = `${t.question_label} ${gameState.currentQuestionIndex} / ${gameState.totalQuestions}`;
+      }
+
+      // Pilih gambar yang belum baru digunakan
+      const freshPool = ARTWORK_DATABASE.filter(a => !gameState.recentArtworksHistory.includes(a.id));
+      const poolToUse = freshPool.length > 0 ? freshPool : ARTWORK_DATABASE;
+      const artwork = poolToUse[Math.floor(Math.random() * poolToUse.length)];
+
+      gameState.currentArtwork = artwork;
+      gameState.recentArtworksHistory.push(artwork.id);
+      if (gameState.recentArtworksHistory.length > 15) gameState.recentArtworksHistory.shift();
+
+      const canvasContainer = document.getElementById('colourCanvas');
+      canvasContainer.innerHTML = artwork.svg;
+
+      const shapesInArt = Array.from(canvasContainer.querySelectorAll('.paintable-shape'));
+      const availableShapeTypes = [...new Set(shapesInArt.map(el => el.getAttribute('data-shape')))];
+
+      // Pilih sasaran bentuk yang berbeza untuk gambar ini
+      let candidateShapes = availableShapeTypes.filter(st => {
+        const questionKey = `${artwork.id}_${st}`;
+        return !gameState.recentQuestionsHistory.includes(questionKey);
+      });
+
+      if (candidateShapes.length === 0) {
+        candidateShapes = availableShapeTypes;
+      }
+
+      const targetShape = candidateShapes[Math.floor(Math.random() * candidateShapes.length)];
+      gameState.currentTargetShape = targetShape;
+
+      gameState.recentQuestionsHistory.push(`${artwork.id}_${targetShape}`);
+      if (gameState.recentQuestionsHistory.length > 25) gameState.recentQuestionsHistory.shift();
+
+      const matchingShapes = shapesInArt.filter(el => el.getAttribute('data-shape') === targetShape);
+      gameState.targetNeeded = matchingShapes.length;
+      gameState.correctInRound = 0;
+
+      const shapeNameTranslated = t.shapes[targetShape] || targetShape.toUpperCase();
+      document.getElementById('instructionText').textContent = t.inst_all.replace('{shape}', shapeNameTranslated.toLowerCase());
+      document.getElementById('targetShapeLabel').textContent = shapeNameTranslated;
+      document.getElementById('targetShapeSvgContainer').innerHTML = getShapeIconSvg(targetShape);
+
+      shapesInArt.forEach(shapeEl => {
+        shapeEl.addEventListener('click', (e) => handleShapeClick(e, shapeEl));
+      });
+
+      setMascotState('mascotGame', 'mascot-bounce');
+    }
+
+    /* Pengendali Sentuhan Bentuk */
+    function handleShapeClick(e, shapeEl) {
+      if (gameState.isTransitioning) return;
+
+      const clickedShapeType = shapeEl.getAttribute('data-shape');
+
+      if (clickedShapeType === gameState.currentTargetShape) {
+        // --- JAWAPAN BETUL ---
+        if (shapeEl.getAttribute('data-coloured') === 'true') {
+          return;
+        }
+
+        shapeEl.setAttribute('data-coloured', 'true');
+        shapeEl.style.fill = gameState.selectedColor.hex;
+
+        spawnSparkles(e.clientX, e.clientY);
+        sound.playCorrect();
+
+        gameState.score += 10;
+        document.getElementById('gameScoreText').textContent = gameState.score;
+        gameState.correctInRound++;
+
+        setMascotState('mascotGame', 'mascot-jump');
+
+        if (gameState.correctInRound >= gameState.targetNeeded) {
+          gameState.isTransitioning = true;
+          // Bonus tamat gambar (+10)
+          gameState.score += 10;
+          document.getElementById('gameScoreText').textContent = gameState.score;
+
+          sound.playCelebration();
+          triggerMiniConfetti();
+          showFeedback(true, I18N[gameState.lang].feedback_correct);
+          setMascotState('mascotGame', 'mascot-celebrate');
+
+          setTimeout(() => {
+            nextQuestion();
+          }, 1400);
+        }
+      } else {
+        // --- JAWAPAN SALAH (TERUS KE GAMBAR SETERUSNYA TANPA PAKSA RETRY) ---
+        gameState.isTransitioning = true;
+        sound.playWrong();
+        setMascotState('mascotGame', 'mascot-confused');
+        showFeedback(false, I18N[gameState.lang].feedback_wrong);
+
+        setTimeout(() => {
+          nextQuestion();
+        }, 900);
+      }
+    }
+
+    function showFeedback(isCorrect, text) {
+      const banner = document.getElementById('feedbackBanner');
+      const icon = document.getElementById('fbIcon');
+      const txt = document.getElementById('fbText');
+
+      banner.className = `feedback-banner show ${isCorrect ? 'correct' : 'wrong'}`;
+      icon.innerHTML = getChibiFeedbackSvg(isCorrect);
+      txt.textContent = text;
+
+      setTimeout(() => {
+        banner.classList.remove('show');
+      }, 850);
+    }
+
+    function spawnSparkles(x, y) {
+      for (let i = 0; i < 6; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'sparkle-pop';
+        spark.innerHTML = `
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+          <polygon points="12,2 15,9 22,10 17,15 19,22 12,18 5,22 7,15 2,10 9,9" fill="${['#FFD166','#FF5A79','#4CC9F0','#06D6A0'][i % 4]}" stroke="#2B2D42" stroke-width="1.6" stroke-linejoin="round"/>
+          <circle cx="10" cy="11" r="1.2" fill="#2B2D42"/>
+          <circle cx="14" cy="11" r="1.2" fill="#2B2D42"/>
+        </svg>`;
+        spark.style.left = `${x - 11}px`;
+        spark.style.top = `${y - 11}px`;
+        const tx = (Math.random() - 0.5) * 80 + 'px';
+        const ty = (Math.random() - 0.5) * 80 + 'px';
+        spark.style.setProperty('--tx', tx);
+        spark.style.setProperty('--ty', ty);
+        document.body.appendChild(spark);
+        setTimeout(() => spark.remove(), 600);
+      }
+    }
+
+    function setMascotState(elementId, stateClass) {
+      const mascot = document.getElementById(elementId);
+      if (!mascot) return;
+      mascot.className = `chibi-mascot ${stateClass}`;
+    }
+
+    function endGame() {
+      showScreen('screenResult');
+      document.getElementById('finalScoreDisplay').textContent = gameState.score;
+      const praiseEl = document.getElementById('resultPraiseText');
+      if (gameState.lang === 'ms') {
+        praiseEl.textContent = gameState.score >= 50 ? 'Bintang Cemerlang!' : 'Adik Hebat!';
+      } else {
+        praiseEl.textContent = gameState.score >= 50 ? 'Super Star!' : 'Great Job!';
+      }
+      triggerMiniConfetti();
+      sound.playCelebration();
+    }
+
+    /* ==========================================================================
+       9. KOLEKSI GAMBAR
+       ========================================================================== */
+    function renderCollectionGrid() {
+      const grid = document.getElementById('collectionGrid');
+      grid.innerHTML = '';
+      ARTWORK_DATABASE.forEach(art => {
+        const item = document.createElement('div');
+        item.className = 'collection-item';
+        item.innerHTML = `
+          <div class="collection-thumb">${art.svg}</div>
+          <div class="collection-name">${gameState.lang === 'ms' ? art.nameBm : art.nameEn}</div>
+        `;
+        item.addEventListener('click', () => {
+          sound.playPop();
+          openArtPreview(art);
+        });
+        grid.appendChild(item);
+      });
+    }
+
+    function openArtPreview(art) {
+      document.getElementById('artPreviewSvg').innerHTML = art.svg;
+      document.getElementById('artPreviewName').textContent = art.nameBm;
+      document.getElementById('artPreviewEn').textContent = art.nameEn;
+      document.getElementById('artPreviewShapeBadge').textContent = `${gameState.lang === 'ms' ? 'Kategori: ' : 'Category: '} ${art.category}`;
+      document.getElementById('modalArtPreview').classList.add('active');
+    }
+
+    /* ==========================================================================
+       10. ANIMASI KONFETI
+       ========================================================================== */
+    function triggerMiniConfetti() {
+      const canvas = document.getElementById('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const particles = [];
+      const colors = ['#FF5A79', '#4CC9F0', '#FFD166', '#06D6A0', '#9D4EDD', '#FF8A1E'];
+
+      for (let i = 0; i < 60; i++) {
+        particles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 12,
+          vy: (Math.random() - 0.7) * 14,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 10
+        });
+      }
+
+      let frames = 0;
+      function renderConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.35;
+          p.rotation += p.vRot;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
+        });
+
+        frames++;
+        if (frames < 65) {
+          requestAnimationFrame(renderConfetti);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      renderConfetti();
+    }
+
+    /* ==========================================================================
+       11. PENDENGAR ACARA (EVENT LISTENERS)
+       ========================================================================== */
+    function setupEventListeners() {
+      const mascotSvg = getChibiMascotSvg();
+      ['mascotMenu', 'mascotGame', 'mascotResult'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = mascotSvg;
+      });
+
+      // Butang Home di header untuk kembali ke Menu Utama
+      document.getElementById('btnHeaderHome').addEventListener('click', () => {
+        sound.playPop();
+        showScreen('screenHome');
+      });
+
+      document.getElementById('btnLangToggle').addEventListener('click', () => {
+        sound.playPop();
+        gameState.lang = gameState.lang === 'ms' ? 'en' : 'ms';
+        localStorage.setItem(STORAGE_KEYS.LANG, gameState.lang);
+        applyTranslations();
+        if (document.getElementById('modalCollection').classList.contains('active')) {
+          renderCollectionGrid();
+        }
+        if (document.getElementById('screenGame').classList.contains('active') && gameState.currentArtwork) {
+          const t = I18N[gameState.lang];
+          const shapeName = t.shapes[gameState.currentTargetShape] || gameState.currentTargetShape.toUpperCase();
+          document.getElementById('instructionText').textContent = t.inst_all.replace('{shape}', shapeName.toLowerCase());
+          document.getElementById('targetShapeLabel').textContent = shapeName;
+        }
+      });
+
+      document.getElementById('btnSoundToggle').addEventListener('click', () => {
+        sound.enabled = !sound.enabled;
+        localStorage.setItem(STORAGE_KEYS.SOUND, sound.enabled);
+        updateSoundButtonDisplay();
+        if (sound.enabled) sound.playPop();
+      });
+
+      document.getElementById('btnGoModeSelect').addEventListener('click', () => {
+        sound.playPop();
+        showScreen('screenModeSelect');
+      });
+
+      document.getElementById('btnBackToHomeFromMode').addEventListener('click', () => {
+        sound.playPop();
+        showScreen('screenHome');
+      });
+
+      document.querySelectorAll('#screenModeSelect .menu-card').forEach(card => {
+        card.addEventListener('click', () => {
+          sound.playPop();
+          const count = card.getAttribute('data-count');
+          startGame(count === 'free' ? 'free' : parseInt(count, 10));
+        });
+      });
+
+      document.getElementById('btnOpenCollection').addEventListener('click', () => {
+        sound.playPop();
+        renderCollectionGrid();
+        document.getElementById('modalCollection').classList.add('active');
+      });
+      document.getElementById('btnCloseCollection').addEventListener('click', () => {
+        sound.playPop();
+        document.getElementById('modalCollection').classList.remove('active');
+      });
+      document.getElementById('btnCloseArtPreview').addEventListener('click', () => {
+        sound.playPop();
+        document.getElementById('modalArtPreview').classList.remove('active');
+      });
+
+      document.getElementById('btnPlayAgain').addEventListener('click', () => {
+        sound.playPop();
+        startGame(gameState.modeCount);
+      });
+      document.getElementById('btnResultToHome').addEventListener('click', () => {
+        sound.playPop();
+        showScreen('screenHome');
+      });
+    }
+
+    /* Permulaan Aplikasi: Terus Masuk ke Menu Utama */
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSavedData();
+      initColorPalette();
+      setupEventListeners();
+      applyTranslations();
+      showScreen('screenHome');
+    });
+  </script>
+</body>
+</html>
